@@ -42,14 +42,46 @@ def AddSV(mssv,ten,gioi_tinh,cmnd,ngay_sinh,id_lop):
 def AddSinhVienHocPhan(mssv, id_monhoc_hocki):
     conn =sqlite3.connect('Database.db')
     cursor = conn.cursor()
+    # mssv = str(mssv)  # Chuyển đổi mssv thành chuỗi
+    # id_monhoc_hocki = int(id_monhoc_hocki)  # Chuyển đổi id_monhoc_hocki thành số nguyên
+    # # Insert student into the database
+    # cursor.execute("INSERT INTO MonHoc_SinhVien (mssv,id_monhoc_hocki) VALUES (?, ?)",
+    #                (int(mssv),int(id_monhoc_hocki) ))
+    # Thực hiện truy vấn INSERT
+    # Chuyển đổi kiểu dữ liệu sang str
+    maSV=mssv[0]
 
-    # Insert student into the database
-    cursor.execute("INSERT INTO MonHoc_SinhVien (mssv,id_monhoc_hocki) VALUES (?, ?)",
-                   (mssv,id_monhoc_hocki ))
+    # Thực hiện truy vấn INSERT
+    cursor.execute("INSERT INTO MonHoc_SinhVien (mssv, id_monhoc_hocki) VALUES (?, ?)", (maSV, id_monhoc_hocki))
+
+    # cursor.execute("INSERT INTO MonHoc_SinhVien (mssv, id_monhoc_hocki) VALUES (?, ?)", (mssv, id_monhoc_hocki))
+
 
     # Commit the changes and close the connection
     conn.commit()
     conn.close()
+
+def getmaMonHoc_HocKi(id_monhoc,id_hocki):
+    conn = sqlite3.connect('Database.db')
+
+    query = "SELECT MonHoc_HocKi.id FROM MonHoc_HocKi WHERE MonHoc_HocKi.id_monhoc = '{}' AND MonHoc_HocKi.id_hocki = '{}'".format(id_monhoc, id_hocki)
+    # query = "Select MonHoc_HocKi.id from MonHoc_HocKi Where MonHoc_HocKi.id_monhoc='%s' AND MonHoc_HocKi.id_hocki = '%s'" % id_monhoc,id_hocki
+
+    cursor = conn.execute(query)
+
+    result = None
+
+    for row in cursor:
+        result = row
+
+    conn.close()
+
+    conn.close()
+
+    return  result
+
+
+
 def getmaLopbytenLop(tenLop):
     conn = sqlite3.connect('Database.db')
 
@@ -107,6 +139,22 @@ def nhandienDB():
         arr_mssv.append(row[0])
     
     return arr_mssv
+
+
+def getmaSVbytenSV(ten_sv):
+    conn = sqlite3.connect('Database.db')
+
+    query = f"SELECT SinhVien.mssv FROM SinhVien WHERE SinhVien.ten = '{ten_sv}'"
+
+    cursor = conn.execute(query)
+
+    result = None
+
+    for row in cursor:
+        result = row
+
+    conn.close()
+    return  result
 
 def getData(mssv):
     conn = sqlite3.connect('Database.db')

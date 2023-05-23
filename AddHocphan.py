@@ -5,8 +5,6 @@ import tkinter.ttk as ttk
 import tkinter as tk
 import tkinter
 from tkinter import messagebox
-# from tkcalendar import Calendar, DateEntry
-# from datetime import datetime
 
 
 import os
@@ -16,7 +14,6 @@ import ActionDB
 
 window = tk.Tk()
 window.title("Dang ki hoc phan")
-# window.geometry("1570x700")
 
 
 def getDataGiangVien(event):
@@ -88,7 +85,7 @@ cbb_hocki = Combobox(window, state="readonly")
 cbb_hocki.bind("<<ComboboxSelected>>", getDataMonHoc_GiangVien)
 cbb_hocki.grid(row=2, column=1, padx=10, pady=10)
 
-# cbb_hocki.place(x = 730, y=220)
+
 
 def getDataLopHoc_Hocki(event):
 
@@ -118,6 +115,36 @@ def filter_combobox(event):
     cbb_sv['values'] = filtered_values
     cbb_sv.icursor(tk.END)
 
+def getMaHocKi():
+    monhoc = cbb_mon.get()
+    print(monhoc)
+    idMonhoc = ActionDB.getmaMonhocbytenMonhoc(monhoc)[0]
+    
+    hocki = cbb_hocki.get()
+    idHocki =ActionDB.getmaHockibytenHocki(hocki)[0]
+
+    return idMonhoc,idHocki
+
+def Add_SV_Monhoc():
+    ten_sv=cbb_sv.get()
+    ma_sv = ActionDB.getmaSVbytenSV(ten_sv)
+    # id_monhoc,id_hocki=getMaHocKi()
+    monhoc = cbb_mon.get()
+    print(monhoc)
+    idMonhoc = ActionDB.getmaMonhocbytenMonhoc(monhoc)[0]
+    
+    hocki = cbb_hocki.get()
+    idHocki =ActionDB.getmaHockibytenHocki(hocki)[0]
+    id_monhoc_hocki=ActionDB.getmaMonHoc_HocKi(idMonhoc,idHocki)[0]
+    ActionDB.AddSinhVienHocPhan(ma_sv, id_monhoc_hocki)
+    
+
+
+def get_selected_value(combobox):
+    selected_value = combobox.get()
+    print("Selected value:", selected_value)
+    return selected_value
+
 #Mon hoc
 lbl_mon =  Label(window, text="Môn Học", foreground="#DA681D", font=("Arial", 13, "bold"))
 # lbl_mon.place(x=920,y=195)
@@ -125,6 +152,7 @@ lbl_mon.grid(row=3, column=0, padx=10, pady=10)
 
 cbb_mon = Combobox(window, state='disabled')
 cbb_mon.bind("<<ComboboxSelected>>", getDataLopHoc_Hocki)
+
 # cbb_mon.place(x = 920, y=220)
 cbb_mon.grid(row=3, column=1, padx=10, pady=10)
 
@@ -141,8 +169,13 @@ cbb_sv['values'] = all_ten_sv
 cbb_sv.bind('<Key>', filter_combobox)
 cbb_sv.grid(row=4, column=1, padx=10, pady=10)
 
-ma_sv = cbb_sv.get()
-ActionDB.AddSinhVienHocPhan(ma_sv, id_monhoc_hocki)
+
+btn_add = tk.Button(window, text="Thêm sinh viên vào lớp", command=Add_SV_Monhoc)
+btn_add.grid(row=6, column=1, padx=10, pady=10)
+
+
+
+
 
 
 

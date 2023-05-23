@@ -37,8 +37,8 @@ windown = Tk()
 windown.title("Nhận Diện Khuôn Mặt Và Hỗ Trợ Điểm Danh Sinh Viên")
 windown.geometry("1570x700")
 
-# video = cv2.VideoCapture(0)
-video = cv2.VideoCapture('http://10.10.53.128:81/stream')
+video = cv2.VideoCapture(0)
+# video = cv2.VideoCapture('http://10.10.53.128:81/stream')
 
 
 canvas_w = video.get(cv2.CAP_PROP_FRAME_WIDTH)
@@ -372,6 +372,15 @@ def thongkeHetMon():
 
 button_thongke_ngay = tk.Button(windown, text="Thống Kê Theo Ngày", background="#4BF6CE", font=("Arial", 13, "bold"), borderwidth=2, relief="raised", width=20, command=thongketheongay)
 button_thongke_ngay.place(x=1050,y=20)
+
+
+def AddSinhVien():
+    import AddSV
+
+def AddSinhVienHocPhan():
+    import AddHocphan
+
+
 class CustomDateEntry(DateEntry):
 
     def _select(self, event=None):
@@ -388,6 +397,16 @@ date_thongke._set_text(date_thongke._date.strftime('%d/%m/%Y'))
 date_thongke.place(x=1300,y=22)
 button_thongke_hetmon = tk.Button(windown, text="Thống Kê Kết Thúc Môn", background="#4BF6CE", width=20, borderwidth=2, relief="raised", font=("Arial", 13, "bold"), command=thongkeHetMon)
 button_thongke_hetmon.place(x=1050,y=65)
+
+button_thongke_hetmon = tk.Button(windown, text="Thêm dữ liệu sinh viên", background="#4BF6CE", width=20, borderwidth=2, relief="raised", font=("Arial", 13, "bold"), command=AddSinhVien)
+button_thongke_hetmon.place(x=1050,y=108)
+
+button_thongke_hetmon = tk.Button(windown, text="Thêm SV vào lớp học phần", background="#4BF6CE", width=20, borderwidth=2, relief="raised", font=("Arial", 13, "bold"), command=AddSinhVienHocPhan)
+button_thongke_hetmon.place(x=1050,y=165)
+
+
+
+
 
 def dangxuat():
     windown.destroy()
@@ -541,6 +560,8 @@ lbl_vang1 = Label(frame_tongso, text="Vắng: ", font=("Arial", 10, "bold"), wid
 lbl_vang1.grid(column=0, row=2)
 lbl_vang2 = Label(frame_tongso, text="00", foreground="#E20A0A", font=("Arial", 10, "bold"), width=15)
 lbl_vang2.grid(column=1, row=2)
+
+
 
 update_frame()
 getDataGiangVien(1)
