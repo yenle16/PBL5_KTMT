@@ -560,6 +560,24 @@ def getSVbyMonhocGVHocki(idMonhoc, maGV, tenHocki):
     conn.close()
     return (result_name_sv,result_mssv)
 
+def getSVbyLopHocPhan(tenLopHocPhan):
+    conn = sqlite3.connect('Database.db')
+    query = "Select SinhVien.ten, SinhVien.mssv from SinhVien " \
+            "INNER JOIN SinhVien_LopHocPhan ON SinhVien_LopHocPhan.mssv = SinhVien.mssv " \
+            "INNER JOIN LopHocPhan ON LopHocPhan.id = SinhVien_LopHocPhan.id_lophocphan " \
+            "Where LopHocPhan.ten = '%s'" % tenLopHocPhan
+
+    cursor = conn.execute(query)
+
+    result_name_sv = []
+    result_mssv = []
+
+    for row in cursor:
+        result_name_sv.append(row[0])
+        result_mssv.append(row[1])
+    conn.close()
+    return (result_name_sv,result_mssv)
+
 
 def getDataLopHoc_Hocki(monhoc,hocki,giangvien):
     conn = sqlite3.connect('Database.db')
@@ -609,5 +627,28 @@ def getDataLopHoc_Hocki(monhoc,hocki,giangvien):
     conn.close()
     return (result_name_sv,result_mssv)
 
+
+def truy_xuat_lop_hoc_hien_tai(current_time,weekday):
+    conn = sqlite3.connect('Database.db')  # Thay 'your_database.db' bằng tên cơ sở dữ liệu SQLite của bạn
+    cursor = conn.cursor()
+
+
+    query = """SELECT LopHocPhan.ten
+               FROM LopHocPhan
+               INNER JOIN TietHoc ON LopHocPhan.id_tiet = TietHoc.id
+               WHERE ABS(strftime('%s', TietHoc.giobatdau) - strftime('%s', ?)) < 1800  AND LopHocPhan.Thu = ? """
+
+
+
+    # cursor.execute(query, (current_time,))
+    # result = cursor.fetchall()
+    cursor = conn.execute(query, (current_time,weekday))
+    result = []
+
+    for row in cursor:
+        result.append(row[0])
+
+    conn.close()
+    return  result
 
 

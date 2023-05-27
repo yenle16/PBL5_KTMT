@@ -402,7 +402,7 @@ button_thongke_hetmon = tk.Button(windown, text="Thêm dữ liệu sinh viên", 
 button_thongke_hetmon.place(x=1050,y=108)
 
 button_thongke_hetmon = tk.Button(windown, text="Thêm SV vào lớp học phần", background="#4BF6CE", width=20, borderwidth=2, relief="raised", font=("Arial", 13, "bold"), command=AddSinhVienHocPhan)
-button_thongke_hetmon.place(x=1050,y=165)
+button_thongke_hetmon.place(x=1050,y=155)
 
 
 
@@ -462,6 +462,56 @@ def getDataMonHoc_GiangVien(event):
     result_name_mh=ActionDB.getDataMonHoc_GiangVien(giangvien,hocki)
     cbb_mon['values'] = result_name_mh
 
+
+
+def truy_xuat_thoi_gian_lop_hoc_phan(ten_lop_hoc_phan):
+    conn = sqlite3.connect('Database.db')  # Thay 'your_database.db' bằng tên cơ sở dữ liệu SQLite của bạn
+    cursor = conn.cursor()
+
+    query = """SELECT Tiet.giobatdau, Tiet.gioketthuc
+               FROM LopHocPhan
+               INNER JOIN Tiet ON LopHocPhan.id_tiet = Tiet.id
+               WHERE LopHocPhan.ten = ?"""
+
+    cursor.execute(query, (ten_lop_hoc_phan,))
+    result = cursor.fetchone()
+
+    if result:
+        giobatdau, gioketthuc = result
+        print(f"Thời gian của lớp học phần '{ten_lop_hoc_phan}': Giờ bắt đầu: {giobatdau}, Giờ kết thúc: {gioketthuc}")
+    else:
+        print(f"Không tìm thấy lớp học phần có tên '{ten_lop_hoc_phan}'")
+
+    conn.close()
+
+
+def truy_xuat_lop_hoc_hien_tai():
+    current_datetime = datetime.datetime.now()
+    current_time = current_datetime.time().strftime("%H:%M:%S")  # Chuyển đổi thành chuỗi thời gian
+    weekday = current_datetime.strftime('%A')
+    ActionDB.truy_xuat_lop_hoc_hien_tai(current_time,weekday)
+# Gọi hàm truy_xuat_lop_hoc_hien_tai để truy xuất các lớp học hiện tại
+
+def getSVbyLopHocPhan(event):
+    tenLopHocPhan=cbb_lophocphan.get()
+    result_name_sv,result_mssv=ActionDB.getSVbyLopHocPhan(tenLopHocPhan)
+    mylist.delete(0, END)
+    mylist_mssv.delete(0, END)
+    for line_name in result_name_sv:
+        mylist.insert(END, str(line_name))
+
+    for line_mssv in result_mssv:
+        mylist_mssv.insert(END, str(line_mssv))
+
+    # conn.close()
+    # show_svdiemdanh()
+    lbl_tongso2.configure(text=mylist.size())
+    lbl_hiendien2.configure(text=mylist_sv_dihoc.size())
+    vang = mylist.size() - mylist_sv_dihoc.size()
+    lbl_vang2.configure(text=vang)
+
+
+
 #Giangvien
 lbl_gv =  Label(windown, text="Giảng viên", foreground="#DA681D", font=("Arial", 13, "bold"))
 lbl_gv.place(x=540,y=195)
@@ -476,6 +526,20 @@ cbb_hocki = Combobox(windown, state="readonly")
 cbb_hocki.bind("<<ComboboxSelected>>", getDataMonHoc_GiangVien)
 cbb_hocki.place(x = 730, y=220)
 
+
+#Lophocphan
+lbl_lophocphan =  Label(windown, text="Lớp học phần", foreground="#DA681D", font=("Arial", 13, "bold"))
+lbl_lophocphan.place(x=1110,y=195)
+cbb_lophocphan = Combobox(windown, state="readonly")
+cbb_lophocphan.bind("<<ComboboxSelected>>", getSVbyLopHocPhan)
+cbb_lophocphan.place(x = 1110, y=220)
+
+# truy_xuat_lop_hoc_hien_tai()
+current_datetime = datetime.now()
+current_time = current_datetime.time().strftime("%H:%M:%S")  # Chuyển đổi thành chuỗi thời gian
+weekday = current_datetime.strftime('%A')
+cbb_lophocphan['values'] = ActionDB.truy_xuat_lop_hoc_hien_tai(current_time,weekday)
+                                              
 def getDataLopHoc_Hocki(event):
     show_svdiemdanh()
 
@@ -510,6 +574,8 @@ def getDataLopHoc_Hocki(event):
     lbl_hiendien2.configure(text=mylist_sv_dihoc.size())
     vang = mylist.size() - mylist_sv_dihoc.size()
     lbl_vang2.configure(text=vang)
+
+
 
 #Mon hoc
 lbl_mon =  Label(windown, text="Môn Học", foreground="#DA681D", font=("Arial", 13, "bold"))
