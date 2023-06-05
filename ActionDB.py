@@ -629,7 +629,7 @@ def getDataLopHoc_Hocki(monhoc,hocki,giangvien):
 
 
 def truy_xuat_lop_hoc_hien_tai(current_time,weekday):
-    conn = sqlite3.connect('Database.db')  # Thay 'your_database.db' bằng tên cơ sở dữ liệu SQLite của bạn
+    conn = sqlite3.connect('Database.db') 
     cursor = conn.cursor()
 
 
