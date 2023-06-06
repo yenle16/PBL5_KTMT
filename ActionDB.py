@@ -182,6 +182,19 @@ def insert_diemdanh(mssv, msgv, id_hocki, id_monhoc, gio_diemdanh, ngay_diemdanh
 
     conn.close()
 
+def insert_diemdanhHP(mssv, id_lophocphan, gio_diemdanh, ngay_diemdanh):
+    conn = sqlite3.connect('Database.db')
+
+    query = "INSERT INTO SVDiemDanh(mssv,id_lophocphan, gio_diemdanh, ngay_diemdanh) VALUES ("+str(mssv)+",'"+str(id_lophocphan)+"', '"+str(gio_diemdanh)+"', '"+str(ngay_diemdanh)+"')"
+
+    conn.execute(query)
+
+    conn.commit()
+
+    conn.close()
+
+
+
 def getDataCBB(masogv,hocki,monhoc):
     conn = sqlite3.connect('Database.db')
 
@@ -231,6 +244,40 @@ def show_svdiemdanh(result_data,ngay_diemdanh):
         kqua_sv_diemdanh.append(row)
     conn.close()
     return kqua_sv_diemdanh
+
+
+def getidLopHocPhanbyten(tenLopHocPhan):
+    conn = sqlite3.connect('Database.db')
+
+    query2 = "Select LopHocPhan.id from LopHocPhan Where LopHocPhan.ten = '%s'" % str(tenLopHocPhan)
+    cursor2 = conn.execute(query2)
+
+    result = None
+
+    for row in cursor2:
+        result = row
+
+    conn.close()
+    return  result
+
+def show_svdiemdanhHP(id_lophocphan,ngay_diemdanh):
+    conn = sqlite3.connect('Database.db')
+
+    # now = datetime.now()
+    # ngay_diemdanh = now.strftime("%d-%m-%Y")
+
+    query_svdiemdanh = "Select SinhVien.ten, SinhVien.mssv, SVDiemDanh.gio_diemdanh, SVDiemDanh.ngay_diemdanh, SVDiemDanh.id_lophocphan from SVDiemDanh " \
+                       "INNER JOIN SinhVien ON SinhVien.mssv = SVDiemDanh.mssv " \
+                       "Where  SVDiemDanh.id_lophocphan = '%s' " \
+                       "And SVDiemDanh.ngay_diemdanh = '%s'" % (
+                       id_lophocphan, ngay_diemdanh)
+    cursor_svdiemdanh = conn.execute(query_svdiemdanh)
+    kqua_sv_diemdanh = []
+    for row in cursor_svdiemdanh:
+        kqua_sv_diemdanh.append(row)
+    conn.close()
+    return kqua_sv_diemdanh
+
 def show_svdiemdanh(maGV,maHocki,maMonhoc,ngay_diemdanh):
     conn = sqlite3.connect('Database.db')
 
@@ -255,6 +302,16 @@ def diemdanh():
     conn = sqlite3.connect('Database.db')
     query_check_svdiemdanh = "Select SinhVienDiemDanh.mssv, SinhVienDiemDanh.msgv, SinhVienDiemDanh.id_hocki, SinhVienDiemDanh.id_monhoc, SinhVienDiemDanh.ngay_diemdanh from SinhVienDiemDanh " \
                                      "INNER JOIN SinhVien ON SinhVien.mssv = SinhVienDiemDanh.mssv "
+    cursor_check_svdiemdanh = conn.execute(query_check_svdiemdanh)
+    kqua_check_svdiemdanh = []
+    for row in cursor_check_svdiemdanh:
+        kqua_check_svdiemdanh.append(row)
+    return kqua_check_svdiemdanh
+
+def diemdanhHP():
+    conn = sqlite3.connect('Database.db')
+    query_check_svdiemdanh = "Select SVDiemDanh.mssv,SVDiemDanh.id_lophocphan, SVDiemDanh.ngay_diemdanh from SVDiemDanh " \
+                                     "INNER JOIN SinhVien ON SinhVien.mssv = SVDiemDanh.mssv "
     cursor_check_svdiemdanh = conn.execute(query_check_svdiemdanh)
     kqua_check_svdiemdanh = []
     for row in cursor_check_svdiemdanh:

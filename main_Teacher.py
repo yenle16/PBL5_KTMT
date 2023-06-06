@@ -205,6 +205,22 @@ def show_svdiemdanh():
         if item[4] == result_data[0]:
             mylist_sv_dihoc.insert(END, item[0] + "_" + item[1] + "/" + item[2]+ " " + item[3])
 
+
+def show_svdiemdanhHP():
+    now = datetime.now()
+    tenLopHocPhan=lbl_tenlophocphan["text"]
+    idLopHocPhan=ActionDB.getidLopHocPhanbyten(tenLopHocPhan)[0]
+    ngay_diemdanh = now.strftime("%d-%m-%Y")
+    kqua_sv_diemdanh=ActionDB.show_svdiemdanhHP(idLopHocPhan,ngay_diemdanh)
+
+    # print (kqua_sv_diemdanh)
+    # print(kqua_sv_diemdanh)
+    mylist_sv_dihoc.delete(0,END)
+    for item in kqua_sv_diemdanh:
+        print (item)
+        if item[3] == ngay_diemdanh:
+            mylist_sv_dihoc.insert(END, item[0] + "_" + item[1] + "/" + item[2]+ " " + item[3])
+
 # def diemdanh():
 #     current_monhoc = cbb_mon.get()
 #     count = 0
@@ -296,6 +312,8 @@ def diemdanh():
     mylist=Listbox()
     mylist_mssv=Listbox()
     tenLopHocPhan=lbl_tenlophocphan["text"]
+    print (tenLopHocPhan)
+    idLopHocPhan=ActionDB.getidLopHocPhanbyten(tenLopHocPhan)[0]
     result_name_sv,result_mssv=ActionDB.getSVbyLopHocPhan(tenLopHocPhan)
     for line_name in result_name_sv:
         # print (line_name)
@@ -355,19 +373,19 @@ def diemdanh():
             lbl_lop_result_after.configure(text=result[2])
 
 
-            result_data = getDataCBB()
+            # result_data = getDataCBB()
 
             now = datetime.now()
             gio_diemdanh = now.strftime("%H:%M:%S")
             ngay_diemdanh = now.strftime("%d-%m-%Y")
 
-            kqua_check_svdiemdanh=ActionDB.diemdanh()
+            kqua_check_svdiemdanh=ActionDB.diemdanhHP()
             for item in kqua_check_svdiemdanh:
-                if item[0] == result[0] and item[1] == result_data[0] and item[2] == result_data[1] and item[3] == result_data[2] and item[4] == ngay_diemdanh:
+                if item[0] == result[0] and item[1] == idLopHocPhan and  item[2] == ngay_diemdanh:
                     messagebox.showinfo("Điểm Danh", "Bạn đã điểm danh !!!", icon='info')
                     return
-            ActionDB.insert_diemdanh(result[0], result_data[0], result_data[1], result_data[2], gio_diemdanh, ngay_diemdanh)
-            show_svdiemdanh()
+            ActionDB.insert_diemdanhHP(mssv, idLopHocPhan, gio_diemdanh, ngay_diemdanh)
+            show_svdiemdanhHP()
     else:
         lbl_name_result_after.configure(text="Unknow")
         lbl_mssv_result_after.configure(text="Unknow")
@@ -403,7 +421,7 @@ def thongketheongay():
     masogv = cbb_gv.get()
     hocki = cbb_hocki.get()
     monhoc = cbb_mon.get()
-    count = 0
+    count = 0   
     for i in cbb_mon['values']:
         if monhoc == i:
             count += 1
@@ -654,7 +672,6 @@ current_time = current_datetime.time().strftime("%H:%M:%S")  # Chuyển đổi t
 weekday = current_datetime.strftime('%A')
 values=ActionDB.truy_xuat_lop_hoc_hien_tai(current_time,weekday)
 lbl_tenlophocphan=Label(window,text='', foreground="#DA681D", font=("Arial", 13, "bold"))
-lbl_tenlophocphan.configure(text=values[0])
 lbl_tenlophocphan.place(x = 1110, y=220)
 
 # cbb_lophocphan['values'] = ActionDB.truy_xuat_lop_hoc_hien_tai(current_time,weekday)
@@ -662,9 +679,13 @@ lbl_tenlophocphan.place(x = 1110, y=220)
 if values:
     # cbb_lophocphan.current(0)
     tenLopHocPhan=values[0]
+    lbl_tenlophocphan.configure(text=values[0])
+
     print (tenLopHocPhan)
     getSVbyLopHocPhan(tenLopHocPhan)
-    print ("aaaaa")
+else:
+    messagebox.showinfo("Điểm Danh",
+                         "Hiện tại không có lớp học nào!!!", icon='warning')
                                               
 def getDataLopHoc_Hocki(event):
     show_svdiemdanh()
