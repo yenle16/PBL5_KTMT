@@ -67,11 +67,11 @@ entry_mssv = tk.Entry(window)
 entry_mssv.grid(row=0, column=1, padx=10, pady=10)
 entry_ten = tk.Entry(window)
 entry_ten.grid(row=1, column=1, padx=10, pady=10)
-combobox_gioitinh = ttk.Combobox(window, values=gioitinh_values)
+combobox_gioitinh = ttk.Combobox(window, values=gioitinh_values,width =17)
 combobox_gioitinh.grid(row=2, column=1, padx=10, pady=10)
 entry_cmnd = tk.Entry(window)
 entry_cmnd.grid(row=3, column=1, padx=10, pady=10)
-date_entry_ngay_sinh = CustomDateEntry(window, width= 15)
+date_entry_ngay_sinh = CustomDateEntry(window, width= 17)
 
 date_entry_ngay_sinh.grid(row=4, column=1, padx=10, pady=10)
 entry_tenlop = tk.Entry(window)
@@ -82,9 +82,5 @@ btn_add = tk.Button(window, text="Thêm sinh viên", command=add_student)
 btn_add.grid(row=6, column=1, padx=10, pady=10)
 
 
-# tenlop=entry_tenlop.get()
-# print(tenlop)
-# print(ActionDB.getmaLopbytenLop(tenlop))
-# Run the main window
 window.mainloop()
 

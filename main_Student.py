@@ -17,7 +17,7 @@ import shutil
 from tkcalendar import Calendar, DateEntry
 from datetime import datetime
 import time
-from Trainning import recognizer
+from Training import recognizer
 import pandas as pd
 from openpyxl.workbook import Workbook
 
@@ -34,23 +34,24 @@ import collections
 from sklearn.svm import SVC
 import ActionDB
 
-windown = Tk()
-windown.title("Nhận Diện Khuôn Mặt Và Hỗ Trợ Điểm Danh Sinh Viên")
-windown.geometry("1570x700")
+window = Tk()
+window.title("Nhận Diện Khuôn Mặt Và Hỗ Trợ Điểm Danh Sinh Viên")
+window.geometry("1570x700")
 
 # video = cv2.VideoCapture("http://10.10.53.128:81/stream")
+# video = cv2.VideoCapture('http://192.168.1.12:81/stream')
 video = cv2.VideoCapture(0)
 
 canvas_w = video.get(cv2.CAP_PROP_FRAME_WIDTH)
 canvas_h = video.get(cv2.CAP_PROP_FRAME_HEIGHT)
 
 
-canvas = Canvas(windown, width = canvas_w, height = canvas_h)
+canvas = Canvas(window, width = canvas_w, height = canvas_h)
 canvas.pack(fill=BOTH)
 
 #frame result
 
-frame_result = tk.LabelFrame(windown, text="Kết Quả", font=("Arial", 15, "bold"))
+frame_result = tk.LabelFrame(window, text="Kết Quả", font=("Arial", 15, "bold"))
 frame_result.place(x=0,y=250)
 
 lbl_name_result = Label(frame_result,text="Tên sinh viên: ", font=("Arial", 12))
@@ -90,52 +91,39 @@ def update_frame():
     photo = PIL.ImageTk.PhotoImage(image=PIL.Image.fromarray(gray))
     #show
     canvas.create_image(0,0, image = photo, anchor=tkinter.NW)
-    windown.after(15, update_frame)
+    window.after(15, update_frame)
 
 
 
-def getDataCBB():
- 
-    tenGV=cbb_gv.get()
-    maGV=ActionDB.getmaGVbytenGV(tenGV)[0]
-
-    tenHocki=cbb_hocki.get()
-    maHocki=ActionDB.getmaHockibytenHocki(tenHocki)[0]
-
-    tenMonhoc=cbb_mon.get()
-    maMonhoc=ActionDB.getmaMonhocbytenMonhoc(tenMonhoc)[0]
-
-    return (maGV,maHocki,maMonhoc)
-
-def show_svdiemdanh():
-    result_data = getDataCBB()
-    maGV,maHocki,maMonhoc=getDataCBB()
-
-    print(result_data)
-
+def show_svdiemdanhHP():
     now = datetime.now()
+    tenLopHocPhan=lbl_tenlophocphan["text"]
+    idLopHocPhan=ActionDB.getidLopHocPhanbyten(tenLopHocPhan)[0]
     ngay_diemdanh = now.strftime("%d-%m-%Y")
-    kqua_sv_diemdanh=ActionDB.show_svdiemdanh(maGV,maHocki,maMonhoc,ngay_diemdanh)
+    kqua_sv_diemdanh=ActionDB.show_svdiemdanhHP(idLopHocPhan,ngay_diemdanh)
 
-    print (kqua_sv_diemdanh)
-    # print(kqua_sv_diemdanh)
     mylist_sv_dihoc.delete(0,END)
     for item in kqua_sv_diemdanh:
-        if item[4] == result_data[0]:
+        print (item)
+        if item[3] == ngay_diemdanh:
             mylist_sv_dihoc.insert(END, item[0] + "_" + item[1] + "/" + item[2]+ " " + item[3])
 
 
 def diemdanh():
-    current_monhoc = cbb_mon.get()
-    count = 0
-    for i in cbb_mon['values']:
-        # print(i)
-        if current_monhoc == i:
-            count += 1
-    if count == 0:
-        messagebox.showinfo("Điểm Danh",
-                            "Vui lòng chọn lớp học trước khi điểm danh!!!", icon='warning')
-        return
+    mylist=Listbox()
+    mylist_mssv=Listbox()
+    tenLopHocPhan=lbl_tenlophocphan["text"]
+    print (tenLopHocPhan)
+    idLopHocPhan=ActionDB.getidLopHocPhanbyten(tenLopHocPhan)[0]
+    result_name_sv,result_mssv=ActionDB.getSVbyLopHocPhan(tenLopHocPhan)
+    for line_name in result_name_sv:
+        # print (line_name)
+        mylist.insert(END, str(line_name))
+
+
+    for line_mssv in result_mssv:
+        mylist_mssv.insert(END, str(line_mssv))
+
     rec = recognizer.read("recognizer/training.yml")
     face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
     # cap = cv2.VideoCapture(0)
@@ -154,18 +142,14 @@ def diemdanh():
         # vẽ 1 đường bao quanh khuôn mặt
         cv2.rectangle(gray, (x, y), (x + w, y + h), (0, 255, 0), 2)
         roi_gray = gray[y:y + h, x:x + w]
-        mssv, confidence = recognizer.predict(roi_gray)
-        if confidence < 100:
+        mssv, dist= recognizer.predict(roi_gray)
+        print (dist)
+        print (mssv)
+        if (dist < 90):
             tile = True
             mssv_after = mssv
             break
-    if len(faces) == 0:
-        messagebox.showinfo("Thêm sinh viên",
-                            "Hệ thống tạm dừng vì không nhận diện được khuôn mặt bạn. Vui lòng thử lại!!!", icon='warning')
-        lbl_name_result_after.configure(text="")
-        lbl_mssv_result_after.configure(text="")
-        lbl_lop_result_after.configure(text="")
-        return
+
     if tile == True:
         result = ActionDB.getData(mssv_after)
         data_mssvs = mylist_mssv.get(0, END)
@@ -186,19 +170,19 @@ def diemdanh():
             lbl_lop_result_after.configure(text=result[2])
 
 
-            result_data = getDataCBB()
+            # result_data = getDataCBB()
 
             now = datetime.now()
             gio_diemdanh = now.strftime("%H:%M:%S")
             ngay_diemdanh = now.strftime("%d-%m-%Y")
 
-            kqua_check_svdiemdanh=ActionDB.diemdanh()
+            kqua_check_svdiemdanh=ActionDB.diemdanhHP()
             for item in kqua_check_svdiemdanh:
-                if item[0] == result[0] and item[1] == result_data[0] and item[2] == result_data[1] and item[3] == result_data[2] and item[4] == ngay_diemdanh:
+                if item[0] == result[0] and item[1] == idLopHocPhan and  item[2] == ngay_diemdanh:
                     messagebox.showinfo("Điểm Danh", "Bạn đã điểm danh !!!", icon='info')
                     return
-            ActionDB.insert_diemdanh(result[0], result_data[0], result_data[1], result_data[2], gio_diemdanh, ngay_diemdanh)
-            show_svdiemdanh()
+            ActionDB.insert_diemdanhHP(mssv, idLopHocPhan, gio_diemdanh, ngay_diemdanh)
+            show_svdiemdanhHP()
     else:
         lbl_name_result_after.configure(text="Unknow")
         lbl_mssv_result_after.configure(text="Unknow")
@@ -211,12 +195,12 @@ def diemdanh():
     # show
     canvas.create_image(0, 0, image=photo, anchor=tkinter.NW)
 
-
-button_diemdanh = tk.Button(windown, text="Điểm Danh", bg="yellow", width=13,  font=("Arial", 15, "bold"), borderwidth=2, relief="raised", height=6 ,command=diemdanh)
+button_diemdanh = tk.Button(window, text="Điểm Danh", bg="yellow", width=13,  font=("Arial", 15, "bold"), borderwidth=2, relief="raised", height=6 ,command=diemdanh)
 button_diemdanh.place(x=350,y=10)
 
+
 #frame time
-frame_time = tk.LabelFrame(windown, text="Thời Gian", font=("Arial", 15, "bold"))
+frame_time = tk.LabelFrame(window, text="Thời Gian", font=("Arial", 15, "bold"))
 frame_time.place(x=550,y=10)
 
 def runTime():
@@ -232,145 +216,120 @@ lbl_time2.grid(column=0, row=1, pady=5)
 
 
 
-def getDataGiangVien(event):
-    khoa = cbb_khoa.get()
+def truy_xuat_lop_hoc_hien_tai():
+    current_datetime = datetime.datetime.now()
+    current_time = current_datetime.time().strftime("%H:%M:%S")  # Chuyển đổi thành chuỗi thời gian
+    weekday = current_datetime.strftime('%A')
+    ActionDB.truy_xuat_lop_hoc_hien_tai(current_time,weekday)
 
-    maKhoa=ActionDB.getmaKhoabytenKhoa(khoa)[0]
-    
-    tenGiangVien=ActionDB.getGiangVienIDbyKhoa(maKhoa)
+def getSVbyLopHocPhan(tenLopHocPhan):
+    # tenLopHocPhan=cbb_lophocphan.get()
+    scrollbar = Scrollbar(window)
+    scrollbar.pack(side=RIGHT, fill=Y)
+    mylist = Listbox(window, width=40, bg="#EDFC8F",yscrollcommand=scrollbar.set)
+    mylist.place(x=350,y=313)   
+    # mylist.pack(side=RIGHT, fill=BOTH)
 
-
-    cbb_gv['values'] = tenGiangVien
-
-
-lbl_khoa =  tk.Label(windown, text="Khoa", foreground="#DA681D", font=("Arial", 13, "bold"))
-lbl_khoa.place(x=350,y=195)
-cbb_khoa = Combobox(windown, state="readonly")
-cbb_khoa['values'] = ActionDB.getDataKhoa()
-cbb_khoa.current(0)
-cbb_khoa.bind("<<ComboboxSelected>>", getDataGiangVien)
-cbb_khoa.place(x = 350, y=220)
-
-
-def getDataHocKi(event):
-    # giangvien = cbb_gv.get()
-    tenGV=cbb_gv.get()
-    maGV=ActionDB.getmaGVbytenGV(tenGV)
-
-    tenHocki=ActionDB.gettenHockibymaGV(maGV)
-
-    cbb_hocki['values'] = tenHocki
-
-
-
-def getDataMonHoc_GiangVien(event):
-    count_hocki = 0
-    for i in cbb_hocki['values']:
-        if cbb_hocki.get() == i:
-            count_hocki += 1
-    if count_hocki == 0:
-        cbb_mon['state'] = 'readonly'
-    hocki = cbb_hocki.get()
-    giangvien = cbb_gv.get()
-
-
-    result_name_mh = []
-
-    result_name_mh=ActionDB.getDataMonHoc_GiangVien(giangvien,hocki)
-    cbb_mon['values'] = result_name_mh
-
-#Giangvien
-lbl_gv =  Label(windown, text="Giảng viên", foreground="#DA681D", font=("Arial", 13, "bold"))
-lbl_gv.place(x=540,y=195)
-cbb_gv = Combobox(windown, state="readonly")
-cbb_gv.bind("<<ComboboxSelected>>", getDataHocKi)
-cbb_gv.place(x = 540, y=220)
-
-#hoc ki
-lbl_hocki =  Label(windown, text="Học kì", foreground="#DA681D", font=("Arial", 13, "bold"))
-lbl_hocki.place(x=730,y=195)
-cbb_hocki = Combobox(windown, state="readonly")
-cbb_hocki.bind("<<ComboboxSelected>>", getDataMonHoc_GiangVien)
-cbb_hocki.place(x = 730, y=220)
-
-
-
-def getDataLopHoc_Hocki(event):
-    show_svdiemdanh()
-
-    monhoc = cbb_mon.get()
-
-    idMonhoc = ActionDB.getmaMonhocbytenMonhoc(monhoc)[0]
-
-    
-
-
-    cbb_hocki['values'] = ActionDB.gettenHockibymaMonhoc(idMonhoc)
-
-    tenGV = cbb_gv.get()
-
-    msgv = ActionDB.getmaGVbytenGV(tenGV)[0]
-
-    hocki = cbb_hocki.get()
-
-
-    result_name_sv,result_mssv=ActionDB.getSVbyMonhocGVHocki(idMonhoc, msgv, hocki)
+    # scrollbar.config(command=mylist.yview)
+    mylist_mssv = Listbox(window, width=30, bg="#EDFC8F",yscrollcommand=scrollbar.set)
+    mylist_mssv.place(x=680,y=313)
+    # mylist = Listbox()
+    # mylist_mssv = Listbox()
+    mylist_sv_dihoc=Listbox()
+    # tenLopHocPhan=cbb_lophocphan.current(0)
+    result_name_sv,result_mssv=ActionDB.getSVbyLopHocPhan(tenLopHocPhan)
+    # print(result_name_sv)
     mylist.delete(0, END)
     mylist_mssv.delete(0, END)
     for line_name in result_name_sv:
+        # print (line_name)
         mylist.insert(END, str(line_name))
+
 
     for line_mssv in result_mssv:
         mylist_mssv.insert(END, str(line_mssv))
 
-    
+    # conn.close()
+    # show_svdiemdanh()
+    lbl_tongso2 = Label()
+    lbl_hiendien2=Label()
+    lbl_vang2=Label()
     lbl_tongso2.configure(text=mylist.size())
     lbl_hiendien2.configure(text=mylist_sv_dihoc.size())
     vang = mylist.size() - mylist_sv_dihoc.size()
     lbl_vang2.configure(text=vang)
 
+
+
+#Lophocphan
+lbl_lophocphan =  Label(window, text="Lớp học phần", foreground="#DA681D", font=("Arial", 13, "bold"))
+lbl_lophocphan.place(x=650,y=125)
+
+
+# truy_xuat_lop_hoc_hien_tai()
+values = []
+
+current_datetime = datetime.now()
+current_time = current_datetime.time().strftime("%H:%M:%S")  # Chuyển đổi thành chuỗi thời gian
+weekday = current_datetime.strftime('%A')
+values=ActionDB.truy_xuat_lop_hoc_hien_tai(current_time,weekday)
+lbl_tenlophocphan=Label(window,text='', foreground="#DA681D", font=("Arial", 13, "bold"))
+# lbl_tenlophocphan.place(x = 1110, y=220)
+lbl_tenlophocphan.place(x = 600, y=150)
+
+if values:
+    tenLopHocPhan=values[0]
+    lbl_tenlophocphan.configure(text=values[0])
+
+    print (tenLopHocPhan)
+    getSVbyLopHocPhan(tenLopHocPhan)
+else:
+    messagebox.showinfo("Điểm Danh",
+                         "Hiện tại không có lớp học nào!!!", icon='warning')
+
+
+#Danh sach lop hoc
+
+
 def dangnhap():
-    windown.destroy()
+    window.destroy()
     import login
 
-button_dangnhap = tk.Button(windown, text="Đăng nhập", background="#4BF6CE", font=("Arial", 13, "bold"), borderwidth=2, relief="raised", width=20, command=dangnhap)
+button_dangnhap = tk.Button(window, text="Đăng nhập", background="#4BF6CE", font=("Arial", 13, "bold"), borderwidth=2, relief="raised", width=20, command=dangnhap)
 button_dangnhap.place(x=1050,y=20)
 
 
 
-#Mon hoc
-lbl_mon =  Label(windown, text="Môn Học", foreground="#DA681D", font=("Arial", 13, "bold"))
-lbl_mon.place(x=920,y=195)
-cbb_mon = Combobox(windown, state='disabled')
-cbb_mon.bind("<<ComboboxSelected>>", getDataLopHoc_Hocki)
-cbb_mon.place(x = 920, y=220)
-
 #Danh sach lop hoc
-lbl_listclass =  Label(windown, text="Danh Sách Lớp Học", foreground="red", font=("Arial", 13, "bold"))
+lbl_listclass =  Label(window, text="Danh Sách Lớp Học", foreground="red", font=("Arial", 13, "bold"))
 lbl_listclass.place(x=350,y=287)
-list_class = Scrollbar(windown)
+list_class = Scrollbar(window)
 list_class.place(x=351,y=313)
-mylist = Listbox(windown, width=40, bg="#EDFC8F", yscrollcommand=list_class.set)
-mylist.place(x=350,y=313)
+
 
 #Ma so sinh vien
-lbl_listmssv =  Label(windown, text="Mã Số Sinh Viên", foreground="red", font=("Arial", 13, "bold"))
+lbl_listmssv =  Label(window, text="Mã Số Sinh Viên", foreground="red", font=("Arial", 13, "bold"))
 lbl_listmssv.place(x=680,y=287)
-list_mssv = Scrollbar(windown)
-list_mssv.place(x=681,y=313)
-mylist_mssv = Listbox(windown, width=30, bg="#EDFC8F", yscrollcommand=list_mssv.set)
-mylist_mssv.place(x=680,y=313)
+list_mssv = Scrollbar(window)
+list_mssv.place(x=950,y=313)
+
+# lbl_listmssv =  Label(window, text="Mã Số Sinh Viên", foreground="red", font=("Arial", 13, "bold"))
+# lbl_listmssv.place(x=680,y=287)
+# list_mssv = Scrollbar(window)
+# list_mssv.place(x=681,y=313)
+# mylist_mssv = Listbox(window, width=30, bg="#EDFC8F", yscrollcommand=list_mssv.set)
+# mylist_mssv.place(x=680,y=313)
 
 #Sinh vien di hoc
-lbl_sv_dihoc =  Label(windown, text="Sinh Viên Đi Học", foreground="red", font=("Arial", 13, "bold"))
+lbl_sv_dihoc =  Label(window, text="Sinh Viên Đi Học", foreground="red", font=("Arial", 13, "bold"))
 lbl_sv_dihoc.place(x=950,y=287)
-list_sv_dihoc = Scrollbar(windown)
+list_sv_dihoc = Scrollbar(window)
 list_sv_dihoc.place(x=951,y=313)
-mylist_sv_dihoc = Listbox(windown, width=60, bg="#FFFFFF", yscrollcommand=list_sv_dihoc.set)
+mylist_sv_dihoc = Listbox(window, width=60, bg="#FFFFFF", yscrollcommand=list_sv_dihoc.set)
 mylist_sv_dihoc.place(x=950,y=313)
 
 #frame tong so
-frame_tongso = tk.LabelFrame(windown, text="Tổng Số", font=("Arial", 13, "bold"))
+frame_tongso = tk.LabelFrame(window, text="Tổng Số", font=("Arial", 13, "bold"))
 frame_tongso.place(x=790,y=10)
 
 lbl_tongso1 = Label(frame_tongso, text="Tổng Số: ", font=("Arial", 10, "bold"), width=15)
@@ -389,7 +348,5 @@ lbl_vang2 = Label(frame_tongso, text="00", foreground="#E20A0A", font=("Arial", 
 lbl_vang2.grid(column=1, row=2)
 
 update_frame()
-getDataGiangVien(1)
-getDataHocKi(1)
 runTime()
-windown.mainloop()
+window.mainloop()
